@@ -62,7 +62,7 @@ if uploaded_file is not None:
         folium.Marker(
             location=[row['LATITUDE'], row['LONGITUDE']],
             popup=popup,
-            icon=folium.Icon(color='blue', icon='info-sign')
+            icon=folium.Icon(color='green', icon='info-sign')
         ).add_to(mymap)
 
     # Add markers for hub data
