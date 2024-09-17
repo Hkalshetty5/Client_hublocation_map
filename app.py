@@ -70,10 +70,10 @@ if uploaded_file is not None:
         route = row['ROUTE']
         color = route_colors.get(route, 'gray')  # Default to gray if route is not in the dictionary
         popup_content = f"""
-            CLIENT WAREHOUSE CODE: {row['CLIENT WAREHOUSE CODE']}<br>
-            CENTER NAME: {row['CENTER NAME']}<br>
-            CENTER TYPE: {row['CENTER TYPE']}<br>
-            ROUTE: {row['ROUTE']}
+            <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
+            <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
+            <b>CENTER TYPE:</b> {row['CENTER TYPE']}<br>
+            <b>ROUTE:</b> {row['ROUTE']}
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
