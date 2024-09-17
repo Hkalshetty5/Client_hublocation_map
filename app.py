@@ -14,16 +14,20 @@ def create_sample_file():
         'CLIENT WAREHOUSE CODE': ['C001', 'C002', 'C003', 'C004'],
         'CENTER NAME': ['Center A', 'Center B', 'Center C', 'Center D'],
         'CENTER TYPE': ['Type A', 'Type B', 'Type C', 'Type D'],
-        'LATITUDE': [13.00537, 13.0262315, 12.9709516, 12.8649544],
-        'LONGITUDE': [77.730665, 77.7701768, 77.7675001, 77.7689736],
-        'ROUTE': ['Route 1', 'Route 2', 'Route 1', 'Route 3']  # Adding route information
+        'LATITUDE': [12.9716, 12.2958, 13.0827, 13.6288],
+        'LONGITUDE': [77.5946, 76.6394, 80.2707, 79.4192],
+        'ROUTE': ['Route 1', 'Route 2', 'Route 1', 'Route 3'],
+        'Rider Name': ['Rider A', 'Rider B', 'Rider A', 'Rider C'],
+        'Round1': ['08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM'],
+        'Round2': ['12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM'],
+        'Round3': ['04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM']
     })
 
     # Sample hub data
     hub_data = pd.DataFrame({
         'Name': ['Hub 1', 'Hub 2'],
-        'Lat': [12.9042785, 12.94223],
-        'Long': [77.6957935, 77.7569319]
+        'Lat': [12.9716, 12.2958],
+        'Long': [77.5946, 76.6394]
     })
 
     # Create an Excel writer object
@@ -69,11 +73,16 @@ if uploaded_file is not None:
     for _, row in client_data.iterrows():
         route = row['ROUTE']
         color = route_colors.get(route, 'gray')  # Default to gray if route is not in the dictionary
+        
+        # Updated popup content to include the new columns
         popup_content = f"""
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
             <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
-            <b>CENTER TYPE:</b> {row['CENTER TYPE']}<br>
-            <b>ROUTE:</b> {row['ROUTE']}
+            <b>ROUTE:</b> {row['ROUTE']}<br>
+            <b>Rider Name:</b> {row['Rider Name']}<br>
+            <b>Round 1:</b> {row['Round1']}<br>
+            <b>Round 2:</b> {row['Round2']}<br>
+            <b>Round 3:</b> {row['Round3']}
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
