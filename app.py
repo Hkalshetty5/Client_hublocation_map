@@ -3,6 +3,7 @@ import folium
 import streamlit as st
 from folium import Popup
 from io import BytesIO
+from itertools import cycle
 
 st.title("Client and Hub Location Map")
 
@@ -10,11 +11,12 @@ st.title("Client and Hub Location Map")
 def create_sample_file():
     # Sample client data
     client_data = pd.DataFrame({
-        'CLIENT WAREHOUSE CODE': ['C001', 'C002'],
-        'CENTER NAME': ['Center A', 'Center B'],
-        'CENTER TYPE': ['Type A', 'Type B'],
-        'LATITUDE': [12.9716, 12.2958],
-        'LONGITUDE': [77.5946, 76.6394]
+        'CLIENT WAREHOUSE CODE': ['C001', 'C002', 'C003', 'C004'],
+        'CENTER NAME': ['Center A', 'Center B', 'Center C', 'Center D'],
+        'CENTER TYPE': ['Type A', 'Type B', 'Type C', 'Type D'],
+        'LATITUDE': [12.9716, 12.2958, 13.0827, 13.6288],
+        'LONGITUDE': [77.5946, 76.6394, 80.2707, 79.4192],
+        'ROUTE': ['Route 1', 'Route 2', 'Route 1', 'Route 3']  # Adding route information
     })
 
     # Sample hub data
@@ -51,18 +53,47 @@ if uploaded_file is not None:
     map_center = [client_data['LATITUDE'].mean(), client_data['LONGITUDE'].mean()]
     mymap = folium.Map(location=map_center, zoom_start=12)
 
-    # Add markers for client data
+    # Predefined color palette (20 colors for 20 routes)
+    color_palette = cycle([
+        'red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 
+        'beige', 'darkblue', 'darkgreen', 'cadetblue', 'pink', 'lightblue', 
+        'lightgreen', 'gray', 'black', 'lightgray', 'darkpurple', 'darkorange', 'lightyellow'
+    ])
+
+    # Map each unique route to a color
+    unique_routes = client_data['ROUTE'].unique()
+    route_colors = {route: next(color_palette) for route in unique_routes}
+
+    # Add markers for client data and store coordinates by route
+    route_coordinates = {}
     for _, row in client_data.iterrows():
+        route = row['ROUTE']
+        color = route_colors.get(route, 'gray')  # Default to gray if route is not in the dictionary
         popup_content = f"""
             CLIENT WAREHOUSE CODE: {row['CLIENT WAREHOUSE CODE']}<br>
             CENTER NAME: {row['CENTER NAME']}<br>
-            CENTER TYPE: {row['CENTER TYPE']}
+            CENTER TYPE: {row['CENTER TYPE']}<br>
+            ROUTE: {row['ROUTE']}
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
             location=[row['LATITUDE'], row['LONGITUDE']],
             popup=popup,
-            icon=folium.Icon(color='green', icon='info-sign')
+            icon=folium.Icon(color=color, icon='info-sign')
+        ).add_to(mymap)
+
+        # Add coordinates to route list
+        if route not in route_coordinates:
+            route_coordinates[route] = []
+        route_coordinates[route].append([row['LATITUDE'], row['LONGITUDE']])
+
+    # Draw lines connecting clients in the same route
+    for route, coordinates in route_coordinates.items():
+        folium.PolyLine(
+            locations=coordinates, 
+            color=route_colors[route], 
+            weight=5, 
+            opacity=0.8
         ).add_to(mymap)
 
     # Add markers for hub data
