@@ -16,7 +16,7 @@ def create_sample_file():
         'CENTER TYPE': ['Type A', 'Type B', 'Type C', 'Type D'],
         'LATITUDE': [12.9716, 12.2958, 13.0827, 13.6288],
         'LONGITUDE': [77.5946, 76.6394, 80.2707, 79.4192],
-        'ROUTE': ['Route 1', 'Route 2', 'Route 1', 'Route 3'],
+        'ROUTE': ['Route 1', 'Route 2', 'Route 1', ''],
         'Rider Name': ['Rider A', 'Rider B', 'Rider A', 'Rider C'],
         'Round1': ['08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM'],
         'Round2': ['12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM'],
@@ -65,7 +65,7 @@ if uploaded_file is not None:
     ])
 
     # Map each unique route to a color
-    unique_routes = client_data['ROUTE'].unique()
+    unique_routes = client_data['ROUTE'].dropna().unique()
     route_colors = {route: next(color_palette) for route in unique_routes}
 
     # Add markers for client data and store coordinates by route
@@ -73,17 +73,14 @@ if uploaded_file is not None:
     for _, row in client_data.iterrows():
         route = row['ROUTE']
         
-        # Skip rows with blank or missing 'ROUTE'
-        if pd.isna(route) or route == '':
-            continue
+        # Assign color based on route; default to gray for empty routes
+        color = route_colors.get(route, 'gray')  
 
-        color = route_colors.get(route, 'gray')  # Default to gray if route is not in the dictionary
-        
         # Updated popup content to include the new columns
         popup_content = f"""
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
             <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
-            <b>ROUTE:</b> {row['ROUTE']}<br>
+            <b>ROUTE:</b> {row['ROUTE'] if route else 'No Route'}<br>
             <b>Rider Name:</b> {row['Rider Name']}<br>
             <b>Round 1:</b> {row['Round1']}<br>
             <b>Round 2:</b> {row['Round2']}<br>
@@ -96,15 +93,16 @@ if uploaded_file is not None:
             icon=folium.Icon(color=color, icon='info-sign')
         ).add_to(mymap)
 
-        # Add coordinates to route list
-        if route not in route_coordinates:
-            route_coordinates[route] = []
-        route_coordinates[route].append([row['LATITUDE'], row['LONGITUDE']])
+        # Add coordinates to route list if 'ROUTE' is not empty
+        if route and not pd.isna(route):
+            if route not in route_coordinates:
+                route_coordinates[route] = []
+            route_coordinates[route].append([row['LATITUDE'], row['LONGITUDE']])
 
     # Draw lines connecting clients in the same route
     for route, coordinates in route_coordinates.items():
-        # Skip routes with only one point (since no line can be drawn) or if 'ROUTE' is empty
-        if len(coordinates) > 1 and route:
+        # Only draw lines for routes with more than one point
+        if len(coordinates) > 1:
             folium.PolyLine(
                 locations=coordinates, 
                 color=route_colors[route], 
