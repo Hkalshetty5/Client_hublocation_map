@@ -72,6 +72,11 @@ if uploaded_file is not None:
     route_coordinates = {}
     for _, row in client_data.iterrows():
         route = row['ROUTE']
+        
+        # Skip rows with blank or missing 'ROUTE'
+        if pd.isna(route) or route == '':
+            continue
+
         color = route_colors.get(route, 'gray')  # Default to gray if route is not in the dictionary
         
         # Updated popup content to include the new columns
@@ -98,12 +103,14 @@ if uploaded_file is not None:
 
     # Draw lines connecting clients in the same route
     for route, coordinates in route_coordinates.items():
-        folium.PolyLine(
-            locations=coordinates, 
-            color=route_colors[route], 
-            weight=5, 
-            opacity=0.8
-        ).add_to(mymap)
+        # Skip routes with only one point (since no line can be drawn) or if 'ROUTE' is empty
+        if len(coordinates) > 1 and route:
+            folium.PolyLine(
+                locations=coordinates, 
+                color=route_colors[route], 
+                weight=5, 
+                opacity=0.8
+            ).add_to(mymap)
 
     # Add markers for hub data
     for _, row in hub_data.iterrows():
