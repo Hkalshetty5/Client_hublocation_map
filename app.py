@@ -16,7 +16,7 @@ def create_sample_file():
         'CENTER TYPE': ['Type A', 'Type B', 'Type C', 'Type D'],
         'LATITUDE': [12.9716, 12.2958, 13.0827, 13.6288],
         'LONGITUDE': [77.5946, 76.6394, 80.2707, 79.4192],
-        'ROUTE': ['Route 1', 'Route 2', 'Route 1', ''],
+        'Hub Name': ['Route 1', 'Route 2', 'Route 1', ''],
         'Rider Name': ['Rider A', 'Rider B', 'Rider A', 'Rider C'],
         'Round1': ['08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM'],
         'Round2': ['12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM'],
@@ -80,11 +80,7 @@ if uploaded_file is not None:
         popup_content = f"""
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
             <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
-            <b>ROUTE:</b> {row['ROUTE'] if route else 'No Route'}<br>
-           # <b>Rider Name:</b> {row['Rider Name']}<br>
-           # <b>Round 1:</b> {row['Round1']}<br>
-           # <b>Round 2:</b> {row['Round2']}<br>
-           # <b>Round 3:</b> {row['Round3']}
+            <b>Hub Name:</b> {row['ROUTE'] if route else 'No Route'}<br>
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
