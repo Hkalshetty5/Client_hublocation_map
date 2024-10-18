@@ -59,7 +59,7 @@ if uploaded_file is not None:
 
     # Predefined color palette (20 colors for 20 routes)
     color_palette = cycle([
-        'red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 
+        'beige', 'darkblue', 'darkgreen', 'cadetblue', 'pink', 'lightblue','red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 
         'beige', 'darkblue', 'darkgreen', 'cadetblue', 'pink', 'lightblue', 
         'lightgreen', 'gray', 'black', 'lightgray', 'darkpurple', 'darkorange', 'lightyellow'
     ])
