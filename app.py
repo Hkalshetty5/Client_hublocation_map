@@ -81,10 +81,10 @@ if uploaded_file is not None:
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
             <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
             <b>ROUTE:</b> {row['ROUTE'] if route else 'No Route'}<br>
-            <b>Rider Name:</b> {row['Rider Name']}<br>
-            <b>Round 1:</b> {row['Round1']}<br>
-            <b>Round 2:</b> {row['Round2']}<br>
-            <b>Round 3:</b> {row['Round3']}
+           # <b>Rider Name:</b> {row['Rider Name']}<br>
+           # <b>Round 1:</b> {row['Round1']}<br>
+           # <b>Round 2:</b> {row['Round2']}<br>
+           # <b>Round 3:</b> {row['Round3']}
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
@@ -100,15 +100,15 @@ if uploaded_file is not None:
             route_coordinates[route].append([row['LATITUDE'], row['LONGITUDE']])
 
     # Draw lines connecting clients in the same route
-    for route, coordinates in route_coordinates.items():
+   # for route, coordinates in route_coordinates.items():
         # Only draw lines for routes with more than one point
-        if len(coordinates) > 1:
-            folium.PolyLine(
-                locations=coordinates, 
-                color=route_colors[route], 
-                weight=5, 
-                opacity=0.8
-            ).add_to(mymap)
+    #    if len(coordinates) > 1:
+     #       folium.PolyLine(
+      #          locations=coordinates, 
+       #         color=route_colors[route], 
+        #        weight=5, 
+         #       opacity=0.8
+          #  ).add_to(mymap)
 
     # Add markers for hub data
     for _, row in hub_data.iterrows():
