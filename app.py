@@ -50,9 +50,9 @@ if uploaded_file is not None:
 
     # Create map centered around the average latitude and longitude
     map_center = [client_data['LATITUDE'].mean(), client_data['LONGITUDE'].mean()]
-    mymap = folium.Map(location=map_center, zoom_start=12)
+    mymap = folium.Map(location=map_center, zoom_start=10)
 
-    # Add markers for client data
+    # Add markers for client data with unique icons and color for better visibility
     for _, row in client_data.iterrows():
         popup_content = f"""
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
