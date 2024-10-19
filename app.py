@@ -2,7 +2,6 @@ import pandas as pd
 import folium
 import streamlit as st
 from folium import Popup
-from folium.plugins import MarkerCluster
 from io import BytesIO
 from itertools import cycle
 
@@ -52,7 +51,7 @@ if uploaded_file is not None:
 
     # Create map centered around the average latitude and longitude
     map_center = [client_data['LATITUDE'].mean(), client_data['LONGITUDE'].mean()]
-    mymap = folium.Map(location=map_center, zoom_start=10, tiles='cartodb positron')
+    mymap = folium.Map(location=map_center, zoom_start=10)
 
     # Predefined color palette for hubs (cycling through a fixed set of colors)
     color_palette = cycle(['blue', 'green', 'purple', 'orange', 'darkred', 'cadetblue', 'lightgreen'])
@@ -60,12 +59,6 @@ if uploaded_file is not None:
     # Map each Hub Name to a color
     unique_hubs = client_data['Hub Name'].dropna().unique()
     hub_colors = {hub: next(color_palette) for hub in unique_hubs}
-
-    # Create a dictionary to hold hub locations for easy access
-    hub_locations = {row['Name']: (row['Lat'], row['Long']) for _, row in hub_data.iterrows()}
-
-    # Create a marker cluster for clients
-    marker_cluster = MarkerCluster().add_to(mymap)
 
     # Add markers for client data with unique color based on Hub Name
     for _, row in client_data.iterrows():
@@ -82,24 +75,7 @@ if uploaded_file is not None:
             location=[row['LATITUDE'], row['LONGITUDE']],
             popup=popup,
             icon=folium.Icon(color=color, icon='info-sign')
-        ).add_to(marker_cluster)
-
-        # Draw a line from the client marker to the respective hub
-        if hub_name in hub_locations:
-            hub_location = hub_locations[hub_name]
-            folium.PolyLine(
-                locations=[[row['LATITUDE'], row['LONGITUDE']], hub_location],
-                color=color,
-                weight=2,
-                opacity=0.6
-            ).add_to(mymap)
-
-            # Custom arrow icon for direction
-            folium.Marker(
-                location=hub_location,
-                icon=folium.CustomIcon(icon_image='https://img.icons8.com/ios-filled/50/000000/arrow.png', icon_size=(20, 20)),
-                popup=f"{hub_name} (Hub)"
-            ).add_to(mymap)
+        ).add_to(mymap)
 
     # Add markers for hub data (keeping these as red star icons for distinction)
     for _, row in hub_data.iterrows():
@@ -114,6 +90,21 @@ if uploaded_file is not None:
             popup=popup,
             icon=folium.Icon(color='red', icon='star', icon_color='white')
         ).add_to(mymap)
+
+    # Select a central hub (e.g., Hub 1 is the central hub)
+    central_hub = hub_data.iloc[0]  # Assuming "Hub 1" is the first
+    central_location = [central_hub['Lat'], central_hub['Long']]
+
+    # Draw lines from the central hub to all other hubs
+    for _, row in hub_data.iterrows():
+        if row['Name'] != central_hub['Name']:  # Skip drawing line to the same hub
+            other_hub_location = [row['Lat'], row['Long']]
+            folium.PolyLine(
+                locations=[central_location, other_hub_location],
+                color="green",
+                weight=5,
+                opacity=0.8
+            ).add_to(mymap)
 
     # Save the map to BytesIO for downloading
     map_data = BytesIO()
