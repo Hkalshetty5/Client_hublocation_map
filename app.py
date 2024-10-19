@@ -3,6 +3,7 @@ import folium
 import streamlit as st
 from folium import Popup
 from io import BytesIO
+from itertools import cycle
 
 st.title("Client and Hub Location Map")
 
@@ -15,7 +16,7 @@ def create_sample_file():
         'CENTER TYPE': ['Type A', 'Type B', 'Type C', 'Type D'],
         'LATITUDE': [12.9716, 12.2958, 13.0827, 13.6288],
         'LONGITUDE': [77.5946, 76.6394, 80.2707, 79.4192],
-        'Hub Name': ['Route 1', 'Route 2', 'Route 1', '']
+        'Hub Name': ['Hub 1', 'Hub 2', 'Hub 1', 'Hub 3']
     })
 
     # Sample hub data
@@ -52,21 +53,31 @@ if uploaded_file is not None:
     map_center = [client_data['LATITUDE'].mean(), client_data['LONGITUDE'].mean()]
     mymap = folium.Map(location=map_center, zoom_start=10)
 
-    # Add markers for client data with unique icons and color for better visibility
+    # Predefined color palette for hubs (cycling through a fixed set of colors)
+    color_palette = cycle(['blue', 'green', 'purple', 'orange', 'darkred', 'cadetblue', 'lightgreen'])
+
+    # Map each Hub Name to a color
+    unique_hubs = client_data['Hub Name'].dropna().unique()
+    hub_colors = {hub: next(color_palette) for hub in unique_hubs}
+
+    # Add markers for client data with unique color based on Hub Name
     for _, row in client_data.iterrows():
+        hub_name = row['Hub Name']
+        color = hub_colors.get(hub_name, 'gray')  # Default to gray if Hub Name is missing
+        
         popup_content = f"""
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
             <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
-            <b>Hub Name:</b> {row['Hub Name'] if row['Hub Name'] else 'No Route'}<br>
+            <b>Hub Name:</b> {hub_name if hub_name else 'No Hub Assigned'}<br>
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
             location=[row['LATITUDE'], row['LONGITUDE']],
             popup=popup,
-            icon=folium.Icon(color='blue', icon='info-sign')
+            icon=folium.Icon(color=color, icon='info-sign')
         ).add_to(mymap)
 
-    # Add markers for hub data
+    # Add markers for hub data (keeping these as red star icons for distinction)
     for _, row in hub_data.iterrows():
         popup_content = f"""
             <b>LAB NAME:</b> {row['Name']}<br>
@@ -80,8 +91,8 @@ if uploaded_file is not None:
             icon=folium.Icon(color='red', icon='star', icon_color='white')
         ).add_to(mymap)
 
-    # Select a central hub (e.g., Hub A is Hub 1)
-    central_hub = hub_data.iloc[0]  # "Hub 1"
+    # Select a central hub (e.g., Hub 1 is the central hub)
+    central_hub = hub_data.iloc[0]  # Assuming "Hub 1" is the first
     central_location = [central_hub['Lat'], central_hub['Long']]
 
     # Draw lines from the central hub to all other hubs
