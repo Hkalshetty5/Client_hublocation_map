@@ -3,7 +3,6 @@ import folium
 import streamlit as st
 from folium import Popup
 from io import BytesIO
-from itertools import cycle
 
 st.title("Client and Hub Location Map")
 
@@ -21,9 +20,9 @@ def create_sample_file():
 
     # Sample hub data
     hub_data = pd.DataFrame({
-        'Name': ['Hub 1', 'Hub 2'],
-        'Lat': [12.9716, 12.2958],
-        'Long': [77.5946, 76.6394]
+        'Name': ['Hub 1', 'Hub 2', 'Hub 3', 'Hub 4'],
+        'Lat': [12.9716, 12.2958, 13.0827, 13.6288],
+        'Long': [77.5946, 76.6394, 80.2707, 79.4192]
     })
 
     # Create an Excel writer object
@@ -53,61 +52,26 @@ if uploaded_file is not None:
     map_center = [client_data['LATITUDE'].mean(), client_data['LONGITUDE'].mean()]
     mymap = folium.Map(location=map_center, zoom_start=12)
 
-    # Predefined color palette (20 colors for 20 routes)
-    color_palette = cycle([
-        'beige', 'darkblue', 'darkgreen', 'cadetblue', 'pink', 'lightblue','red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 
-        'beige', 'darkblue', 'darkgreen', 'cadetblue', 'pink', 'lightblue', 
-        'lightgreen', 'gray', 'black', 'lightgray', 'darkpurple', 'darkorange', 'lightyellow'
-    ])
-
-    # Map each unique route to a color
-    unique_routes = client_data['ROUTE'].dropna().unique()
-    route_colors = {route: next(color_palette) for route in unique_routes}
-
-    # Add markers for client data and store coordinates by route
-    route_coordinates = {}
+    # Add markers for client data
     for _, row in client_data.iterrows():
-        route = row['ROUTE']
-        
-        # Assign color based on route; default to gray for empty routes
-        color = route_colors.get(route, 'gray')  
-
-        # Updated popup content to include the new columns
         popup_content = f"""
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
             <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
-            <b>Hub Name:</b> {row['ROUTE'] if route else 'No Route'}<br>
+            <b>Hub Name:</b> {row['Hub Name'] if row['Hub Name'] else 'No Route'}<br>
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
             location=[row['LATITUDE'], row['LONGITUDE']],
             popup=popup,
-            icon=folium.Icon(color=color, icon='info-sign')
+            icon=folium.Icon(color='blue', icon='info-sign')
         ).add_to(mymap)
-
-        # Add coordinates to route list if 'ROUTE' is not empty
-        if route and not pd.isna(route):
-            if route not in route_coordinates:
-                route_coordinates[route] = []
-            route_coordinates[route].append([row['LATITUDE'], row['LONGITUDE']])
-
-    # Draw lines connecting clients in the same route
-   # for route, coordinates in route_coordinates.items():
-        # Only draw lines for routes with more than one point
-    #    if len(coordinates) > 1:
-     #       folium.PolyLine(
-      #          locations=coordinates, 
-       #         color=route_colors[route], 
-        #        weight=5, 
-         #       opacity=0.8
-          #  ).add_to(mymap)
 
     # Add markers for hub data
     for _, row in hub_data.iterrows():
         popup_content = f"""
-            LAB NAME: {row['Name']}<br>
-            LATITUDE: {row['Lat']}<br>
-            LONGITUDE: {row['Long']}
+            <b>LAB NAME:</b> {row['Name']}<br>
+            <b>LATITUDE:</b> {row['Lat']}<br>
+            <b>LONGITUDE:</b> {row['Long']}
         """
         popup = Popup(popup_content, max_width=300)
         folium.Marker(
@@ -115,6 +79,21 @@ if uploaded_file is not None:
             popup=popup,
             icon=folium.Icon(color='red', icon='star', icon_color='white')
         ).add_to(mymap)
+
+    # Select a central hub (e.g., Hub A is Hub 1)
+    central_hub = hub_data.iloc[0]  # "Hub 1"
+    central_location = [central_hub['Lat'], central_hub['Long']]
+
+    # Draw lines from the central hub to all other hubs
+    for _, row in hub_data.iterrows():
+        if row['Name'] != central_hub['Name']:  # Skip drawing line to the same hub
+            other_hub_location = [row['Lat'], row['Long']]
+            folium.PolyLine(
+                locations=[central_location, other_hub_location],
+                color="green",
+                weight=5,
+                opacity=0.8
+            ).add_to(mymap)
 
     # Save the map to BytesIO for downloading
     map_data = BytesIO()
