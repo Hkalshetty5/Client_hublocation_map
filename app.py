@@ -96,15 +96,15 @@ if uploaded_file is not None:
     central_location = [central_hub['Lat'], central_hub['Long']]
 
     # Draw lines from the central hub to all other hubs
-    for _, row in hub_data.iterrows():
-        if row['Name'] != central_hub['Name']:  # Skip drawing line to the same hub
-            other_hub_location = [row['Lat'], row['Long']]
-            folium.PolyLine(
-                locations=[central_location, other_hub_location],
-                color="green",
-                weight=5,
-                opacity=0.8
-            ).add_to(mymap)
+   # for _, row in hub_data.iterrows():
+    #    if row['Name'] != central_hub['Name']:  # Skip drawing line to the same hub
+     #       other_hub_location = [row['Lat'], row['Long']]
+      #      folium.PolyLine(
+       #         locations=[central_location, other_hub_location],
+        #        color="green",
+         #       weight=5,
+          #      opacity=0.8
+           # ).add_to(mymap)
 
     # Save the map to BytesIO for downloading
     map_data = BytesIO()
