@@ -16,11 +16,7 @@ def create_sample_file():
         'CENTER TYPE': ['Type A', 'Type B', 'Type C', 'Type D'],
         'LATITUDE': [12.9716, 12.2958, 13.0827, 13.6288],
         'LONGITUDE': [77.5946, 76.6394, 80.2707, 79.4192],
-        'Hub Name': ['Route 1', 'Route 2', 'Route 1', ''],
-        'Rider Name': ['Rider A', 'Rider B', 'Rider A', 'Rider C'],
-        'Round1': ['08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM'],
-        'Round2': ['12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM'],
-        'Round3': ['04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM']
+        'Hub Name': ['Route 1', 'Route 2', 'Route 1', '']
     })
 
     # Sample hub data
