@@ -95,16 +95,35 @@ if uploaded_file is not None:
     central_hub = hub_data.iloc[0]  # Assuming "Hub 1" is the first
     central_location = [central_hub['Lat'], central_hub['Long']]
 
-    # Draw lines from the central hub to all other hubs
-   # for _, row in hub_data.iterrows():
-    #    if row['Name'] != central_hub['Name']:  # Skip drawing line to the same hub
-     #       other_hub_location = [row['Lat'], row['Long']]
-      #      folium.PolyLine(
-       #         locations=[central_location, other_hub_location],
-        #        color="green",
-         #       weight=5,
-          #      opacity=0.8
-           # ).add_to(mymap)
+    # Assuming central hub is the first row in the hub_data
+central_hub = hub_data.iloc[0]  # First hub in the HubSheet
+central_location = [central_hub['Lat'], central_hub['Long']]
+
+# Draw lines from each client location to the central hub
+for _, client_row in client_data.iterrows():
+    client_location = [client_row['LATITUDE'], client_row['LONGITUDE']]
+    folium.PolyLine(
+        locations=[client_location, central_location],
+        color="blue",
+        weight=3,
+        opacity=0.6
+    ).add_to(mymap)
+
+# Now, draw lines from the first hub to the next and so on (sequentially)
+previous_hub_location = central_location  # Start with the first hub
+for _, hub_row in hub_data.iterrows():
+    current_hub_location = [hub_row['Lat'], hub_row['Long']]
+    
+    if current_hub_location != previous_hub_location:  # Skip if it's the same hub
+        folium.PolyLine(
+            locations=[previous_hub_location, current_hub_location],
+            color="green",
+            weight=5,
+            opacity=0.8
+        ).add_to(mymap)
+    
+    previous_hub_location = current_hub_location  # Move to the next hub
+
 
     # Save the map to BytesIO for downloading
     map_data = BytesIO()
