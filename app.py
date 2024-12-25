@@ -46,6 +46,7 @@ st.download_button(
 uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
 
 if uploaded_file is not None:
+    # Read the uploaded Excel file
     client_data = pd.read_excel(uploaded_file, sheet_name='ClientSheet')
     hub_data = pd.read_excel(uploaded_file, sheet_name='HubSheet')
 
@@ -53,79 +54,60 @@ if uploaded_file is not None:
     map_center = [client_data['LATITUDE'].mean(), client_data['LONGITUDE'].mean()]
     mymap = folium.Map(location=map_center, zoom_start=10)
 
-    # Predefined color palette for hubs (cycling through a fixed set of colors)
+    # Predefined color palette for hubs
     color_palette = cycle(['blue', 'green', 'purple', 'orange', 'darkred', 'cadetblue', 'lightgreen'])
+    hub_colors = {hub: next(color_palette) for hub in client_data['Hub Name'].dropna().unique()}
 
-    # Map each Hub Name to a color
-    unique_hubs = client_data['Hub Name'].dropna().unique()
-    hub_colors = {hub: next(color_palette) for hub in unique_hubs}
-
-    # Add markers for client data with unique color based on Hub Name
+    # Add markers for client data
     for _, row in client_data.iterrows():
-        hub_name = row['Hub Name']
-        color = hub_colors.get(hub_name, 'gray')  # Default to gray if Hub Name is missing
-        
         popup_content = f"""
             <b>CLIENT WAREHOUSE CODE:</b> {row['CLIENT WAREHOUSE CODE']}<br>
             <b>CENTER NAME:</b> {row['CENTER NAME']}<br>
-            <b>Hub Name:</b> {hub_name if hub_name else 'No Hub Assigned'}<br>
+            <b>Hub Name:</b> {row['Hub Name'] if pd.notna(row['Hub Name']) else 'No Hub Assigned'}<br>
         """
-        popup = Popup(popup_content, max_width=300)
         folium.Marker(
             location=[row['LATITUDE'], row['LONGITUDE']],
-            popup=popup,
-            icon=folium.Icon(color=color, icon='info-sign')
+            popup=Popup(popup_content, max_width=300),
+            icon=folium.Icon(color=hub_colors.get(row['Hub Name'], 'gray'), icon='info-sign')
         ).add_to(mymap)
 
-    # Add markers for hub data (keeping these as red star icons for distinction)
+    # Add markers for hub data
     for _, row in hub_data.iterrows():
         popup_content = f"""
-            <b>LAB NAME:</b> {row['Name']}<br>
+            <b>HUB NAME:</b> {row['Name']}<br>
             <b>LATITUDE:</b> {row['Lat']}<br>
             <b>LONGITUDE:</b> {row['Long']}
         """
-        popup = Popup(popup_content, max_width=300)
         folium.Marker(
             location=[row['Lat'], row['Long']],
-            popup=popup,
+            popup=Popup(popup_content, max_width=300),
             icon=folium.Icon(color='red', icon='star', icon_color='white')
         ).add_to(mymap)
 
-    # Select a central hub (e.g., Hub 1 is the central hub)
-    central_hub = hub_data.iloc[0]  # Assuming "Hub 1" is the first
+    # Draw lines from each client to the central hub (assuming first hub is central)
+    central_hub = hub_data.iloc[0]
     central_location = [central_hub['Lat'], central_hub['Long']]
-
-    # Assuming central hub is the first row in the hub_data
-central_hub = hub_data.iloc[0]  # First hub in the HubSheet
-central_location = [central_hub['Lat'], central_hub['Long']]
-
-# Draw lines from each client location to the central hub
-for _, client_row in client_data.iterrows():
-    client_location = [client_row['LATITUDE'], client_row['LONGITUDE']]
-    folium.PolyLine(
-        locations=[client_location, central_location],
-        color="blue",
-        weight=3,
-        opacity=0.6
-    ).add_to(mymap)
-
-# Now, draw lines from the first hub to the next and so on (sequentially)
-previous_hub_location = central_location  # Start with the first hub
-for _, hub_row in hub_data.iterrows():
-    current_hub_location = [hub_row['Lat'], hub_row['Long']]
-    
-    if current_hub_location != previous_hub_location:  # Skip if it's the same hub
+    for _, client_row in client_data.iterrows():
         folium.PolyLine(
-            locations=[previous_hub_location, current_hub_location],
+            locations=[[client_row['LATITUDE'], client_row['LONGITUDE']], central_location],
+            color="blue",
+            weight=3,
+            opacity=0.6
+        ).add_to(mymap)
+
+    # Draw lines between hubs sequentially
+    for i in range(len(hub_data) - 1):
+        folium.PolyLine(
+            locations=[
+                [hub_data.iloc[i]['Lat'], hub_data.iloc[i]['Long']],
+                [hub_data.iloc[i + 1]['Lat'], hub_data.iloc[i + 1]['Long']]
+            ],
             color="green",
             weight=5,
             opacity=0.8
         ).add_to(mymap)
-    
-    previous_hub_location = current_hub_location  # Move to the next hub
 
-
-    # Save the map to BytesIO for downloading
+    # Display the map in Streamlit
     map_data = BytesIO()
     mymap.save(map_data, close_file=False)
     st.components.v1.html(map_data.getvalue().decode(), height=600)
