@@ -84,27 +84,19 @@ if uploaded_file is not None:
             icon=folium.Icon(color='red', icon='star', icon_color='white')
         ).add_to(mymap)
 
-    # Draw lines from each client to the central hub (assuming first hub is central)
-    central_hub = hub_data.iloc[0]
-    central_location = [central_hub['Lat'], central_hub['Long']]
-    for _, client_row in client_data.iterrows():
+    # Draw lines from each client to their respective hub
+for _, client_row in client_data.iterrows():
+    hub_name = client_row['Hub Name']
+    if pd.notna(hub_name) and hub_name in hub_data['Name'].values:
+        hub_row = hub_data[hub_data['Name'] == hub_name].iloc[0]
         folium.PolyLine(
-            locations=[[client_row['LATITUDE'], client_row['LONGITUDE']], central_location],
+            locations=[
+                [client_row['LATITUDE'], client_row['LONGITUDE']],
+                [hub_row['Lat'], hub_row['Long']]
+            ],
             color="blue",
             weight=3,
             opacity=0.6
-        ).add_to(mymap)
-
-    # Draw lines between hubs sequentially
-    for i in range(len(hub_data) - 1):
-        folium.PolyLine(
-            locations=[
-                [hub_data.iloc[i]['Lat'], hub_data.iloc[i]['Long']],
-                [hub_data.iloc[i + 1]['Lat'], hub_data.iloc[i + 1]['Long']]
-            ],
-            color="green",
-            weight=5,
-            opacity=0.8
         ).add_to(mymap)
 
     # Display the map in Streamlit
