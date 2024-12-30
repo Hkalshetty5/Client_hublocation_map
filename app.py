@@ -59,7 +59,7 @@ if uploaded_file is not None:
     mymap = folium.Map(location=map_center, zoom_start=10)
 
     # Predefined color palette for hubs
-    color_palette = cycle(['blue', 'green', 'purple', 'orange', 'darkred', 'cadetblue', 'lightgreen'])
+    color_palette = cycle(['blue', 'green', 'purple', 'orange', 'darkred', 'cadetblue', 'lightgreen', 'pink'])
     hub_colors = {hub: next(color_palette) for hub in client_data['Hub Name'].dropna().unique()}
 
     # Add markers for client data
@@ -98,7 +98,7 @@ if uploaded_file is not None:
                     [client_row['LATITUDE'], client_row['LONGITUDE']],  # Client location
                     [hub_row['Lat'], hub_row['Long']]                  # Hub location
                 ],
-                color="blue",  # Line color
+                color=hub_colors[hub_name],  # Use the assigned color for this hub
                 weight=3,      # Line thickness
                 opacity=0.6    # Line opacity
             ).add_to(mymap)
