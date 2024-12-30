@@ -50,6 +50,10 @@ if uploaded_file is not None:
     client_data = pd.read_excel(uploaded_file, sheet_name='ClientSheet')
     hub_data = pd.read_excel(uploaded_file, sheet_name='HubSheet')
 
+    # Clean whitespace from Hub Name and Name columns
+    client_data['Hub Name'] = client_data['Hub Name'].str.strip()
+    hub_data['Name'] = hub_data['Name'].str.strip()
+
     # Create map centered around the average latitude and longitude
     map_center = [client_data['LATITUDE'].mean(), client_data['LONGITUDE'].mean()]
     mymap = folium.Map(location=map_center, zoom_start=10)
@@ -84,29 +88,22 @@ if uploaded_file is not None:
             icon=folium.Icon(color='red', icon='star', icon_color='white')
         ).add_to(mymap)
 
-  # Ensure Hub Name consistency (strip any extra spaces)
-client_data['Hub Name'] = client_data['Hub Name'].str.strip()
-hub_data['Name'] = hub_data['Name'].str.strip()
-
-# Draw lines from each client to their respective hub
-for _, client_row in client_data.iterrows():
-    hub_name = client_row['Hub Name']
-    
-    # Check if the hub exists in the hub_data
-    if pd.notna(hub_name) and hub_name in hub_data['Name'].values:
-        hub_row = hub_data[hub_data['Name'] == hub_name].iloc[0]
-        folium.PolyLine(
-            locations=[
-                [client_row['LATITUDE'], client_row['LONGITUDE']],  # Client location
-                [hub_row['Lat'], hub_row['Long']]                  # Hub location
-            ],
-            color="blue",  # Line color
-            weight=3,      # Line thickness
-            opacity=0.6    # Line opacity
-        ).add_to(mymap)
-    else:
-        st.write(f"Hub '{hub_name}' for client '{client_row['CLIENT WAREHOUSE CODE']}' not found.")
-
+    # Draw lines from each client to their respective hub
+    for _, client_row in client_data.iterrows():
+        hub_name = client_row['Hub Name']
+        if pd.notna(hub_name) and hub_name in hub_data['Name'].values:
+            hub_row = hub_data[hub_data['Name'] == hub_name].iloc[0]
+            folium.PolyLine(
+                locations=[
+                    [client_row['LATITUDE'], client_row['LONGITUDE']],  # Client location
+                    [hub_row['Lat'], hub_row['Long']]                  # Hub location
+                ],
+                color="blue",  # Line color
+                weight=3,      # Line thickness
+                opacity=0.6    # Line opacity
+            ).add_to(mymap)
+        else:
+            st.write(f"Hub '{hub_name}' for client '{client_row['CLIENT WAREHOUSE CODE']}' not found.")
 
     # Display the map in Streamlit
     map_data = BytesIO()
