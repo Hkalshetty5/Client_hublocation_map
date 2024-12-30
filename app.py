@@ -84,19 +84,20 @@ if uploaded_file is not None:
             icon=folium.Icon(color='red', icon='star', icon_color='white')
         ).add_to(mymap)
 
-    # Draw lines from each client to their respective hub
+   # Draw lines from each client to their respective hub
 for _, client_row in client_data.iterrows():
     hub_name = client_row['Hub Name']
+    # Check if the hub name is valid and exists in the HubSheet
     if pd.notna(hub_name) and hub_name in hub_data['Name'].values:
-        hub_row = hub_data[hub_data['Name'] == hub_name].iloc[0]
+        hub_row = hub_data[hub_data['Name'] == hub_name].iloc[0]  # Get the corresponding hub details
         folium.PolyLine(
             locations=[
-                [client_row['LATITUDE'], client_row['LONGITUDE']],
-                [hub_row['Lat'], hub_row['Long']]
+                [client_row['LATITUDE'], client_row['LONGITUDE']],  # Client location
+                [hub_row['Lat'], hub_row['Long']]                  # Hub location
             ],
-            color="blue",
-            weight=3,
-            opacity=0.6
+            color="blue",  # Customize the line color as needed
+            weight=3,      # Line thickness
+            opacity=0.6    # Line opacity
         ).add_to(mymap)
 
     # Display the map in Streamlit
